@@ -67,7 +67,8 @@ public class PlanServiceImpl implements PlanService {
     }
 
     private Project readProjectFromDisk(String filePath) {
-        Project fullProject;List<String> lines = Utils.readFile(filePath);
+        Project fullProject;
+        List<String> lines = Utils.readFile(filePath);
 
         Parser parser = new Parser();
         fullProject = parser.parse(lines);

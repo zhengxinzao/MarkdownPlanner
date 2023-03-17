@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.xumingmingv.markdownplanner.model.task.CompositeTask;
 import org.xumingmingv.markdownplanner.model.task.Task;
 import lombok.Data;
@@ -114,7 +115,7 @@ public class Project implements IProject {
         // 初始化一下 ProjectStartDate
         initProjectStartDateForTasks();
         // 按照用户对原子任务进行分组
-        Map<String, List<Task>> user2Tasks = groupAtomicTasksByOwner();
+        Map<String, List<Task>> user2Tasks = groupAtomicTasksByOwner();//用户，哪些任务
         // 生成用户统计信息
         userStats = generateUserStat();
         // 初始化原子任务
@@ -252,9 +253,9 @@ public class Project implements IProject {
             int lastOffset = 0;
             for(Task task : tasks) {
                 if (!task.isComposite()) {
-                    int newOffset = calculateEndOffset(lastOffset, task.getCost(), task.getOwner());
-                    task.setStartOffset(lastOffset);
-                    task.setEndOffset(newOffset);
+                    ImmutablePair<Integer,Integer> newOffset = calculateEndOffset(lastOffset, task.getCost(), task.getOwner());
+                    task.setStartOffset(newOffset.getKey());
+                    task.setEndOffset(newOffset.getValue());
 
                     // 这里我们有个假定，任务的endDate始终被正确的设置的。
                     // -- 如果任务延期了，那么endDate要及时延长一点
@@ -264,7 +265,7 @@ public class Project implements IProject {
                     }
                     task.setUsedCost(calculateActualCost(task.getOwner(), task.getStartDate().getDate(), endDate));
 
-                    lastOffset = newOffset + 1;
+                    lastOffset = newOffset.getValue() + 1;
                 }
             }
         });
@@ -316,10 +317,17 @@ public class Project implements IProject {
         return userStats.get(user);
     }
 
-    public int calculateEndOffset(int lastOffset, int numOfHalfDays, String owner) {
+    /**
+     *
+     * @param lastOffset
+     * @param numOfHalfDays
+     * @param owner
+     * @return <lastOffset,newOffset>
+     */
+    public ImmutablePair<Integer,Integer> calculateEndOffset(int lastOffset, int numOfHalfDays, String owner) {
         LocalDate currentDate = new HalfDayDuration(lastOffset).addToDate(projectStartDate).getDate();
-        NextManDay nextManDay = advanceCost(owner, currentDate, numOfHalfDays);
-        return nextManDay.getElapsedCost() + (lastOffset - 1);
+        ImmutablePair<Integer,NextManDay> immutablePair = advanceCost(lastOffset,owner, currentDate, numOfHalfDays);
+        return ImmutablePair.of(immutablePair.getKey(),immutablePair.getValue().getElapsedCost() + (lastOffset - 1));
     }
 
     /**
@@ -333,7 +341,7 @@ public class Project implements IProject {
        int ret = 0;
        LocalDate tmp = startDate;
        while(tmp.compareTo(endDate) <= 0) {
-           NextManDay nextManDay = advanceCost(owner, tmp, endDate, 2);
+           NextManDay nextManDay = advanceCost(0,owner, tmp, endDate, 2).getRight();
            tmp = nextManDay.getDate();
            ret += nextManDay.getActualCost();
        }
@@ -343,14 +351,14 @@ public class Project implements IProject {
     /**
      * 为指定的人从指定的日期开始寻找下个有效的工作日
      */
-    public NextManDay advanceCost(String owner, LocalDate currentDate, int cost) {
-        return advanceCost(owner, currentDate, null, cost);
+    public ImmutablePair<Integer,NextManDay> advanceCost(int lastOffset,String owner, LocalDate currentDate, int cost) {
+        return advanceCost(lastOffset,owner, currentDate, null, cost);
     }
 
     /**
      * 为指定的人从指定的日期开始寻找下个有效的工作日
      */
-    public NextManDay advanceCost(String owner, LocalDate currentDate, LocalDate maxDate, int cost) {
+    public ImmutablePair<Integer,NextManDay> advanceCost(int lastOffset,String owner, LocalDate currentDate, LocalDate maxDate, int cost) {
         int elapsedCost = 0;
         int actualCost = 0;
         int count = 0;
@@ -361,7 +369,9 @@ public class Project implements IProject {
                 currentDate = currentDate.plusDays(1);
                 elapsedCost += 2;
             }
-
+            if(lastOffset==0){
+                lastOffset=elapsedCost;//更新开始游标
+            }
             if (maxDate != null && currentDate.compareTo(maxDate) > 0) {
                 break;
             } else {
@@ -392,7 +402,7 @@ public class Project implements IProject {
         ret.setElapsedCost(elapsedCost);
         ret.setActualCost(actualCost);
         ret.setDate(currentDate);
-        return ret;
+        return ImmutablePair.of(lastOffset,ret);
     }
 
     @Override

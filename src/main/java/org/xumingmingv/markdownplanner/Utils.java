@@ -18,10 +18,11 @@ public class Utils {
         try {
             if (file.isFile()) {
                 if (file.getName().endsWith(".md")) {
-                    String firstLine = FileUtils.readLines(file, "UTF-8").get(0);
-                    String candidate = StringUtils.trimLeadingCharacter(firstLine, '#').trim();
+                    //String firstLine = FileUtils.readLines(file, "UTF-8").get(0);
+                    //String candidate = StringUtils.trimLeadingCharacter(firstLine, '#').trim();
 
-                    return candidate == null ? file.getName() : candidate;
+                    //return candidate == null ? file.getName() : candidate;
+                    return file.getName().replaceAll(".md","").replaceAll(".plan","");
                 }
                 return file.getName();
             } else {

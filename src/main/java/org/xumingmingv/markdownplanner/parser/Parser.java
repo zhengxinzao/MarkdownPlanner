@@ -19,18 +19,18 @@ import org.xumingmingv.markdownplanner.model.task.AtomicTask;
 /**
  * Parser of yash files.
  */
-public class Parser {
+public class Parser {//matcher.group(0)就是指的整个串，group(1)指的是第一个括号里的东西，group(2)指的第二个括号里的东西
   private static final Pattern TASK_LINE_PATTERN =
-      Pattern.compile("\\*(.+)--\\s*([0-9]+\\.?[0-9]?)\\s*(\\[([^\\[\\]]+)])?(\\[([0-9]+)%\\s*\\])??\\s*$");
+      Pattern.compile("\\*(.+)--\\s*([0-9]+\\.?[0-9]?)\\s*(\\[([^\\[\\]]+)])?(\\[([0-9]+)%\\s*\\])??\\s*$");//任务单解析
 
   private static final Pattern PROJECT_START_DATE_PATTERN =
-      Pattern.compile(".*?ProjectStartDate:\\s*([0-9]{4}-[0-9]{2}-[0-9]{2})");
+      Pattern.compile(".*?ProjectStartDate:\\s*([0-9]{4}-[0-9]{2}-[0-9]{2})");//指定项目开始日期
 
   private static final Pattern HEADER_PATTERN =
-      Pattern.compile("^(#{1,})(.*)");
+      Pattern.compile("^(#{1,})(.*)");//项目名
 
   private static final Pattern VACATION_PATTERN =
-      Pattern.compile("^\\*(.+?)--\\s*([0-9]{4}-[0-9]{2}-[0-9]{2})(\\s*-\\s*([0-9]{4}-[0-9]{2}-[0-9]{2}))?\\s*$");
+      Pattern.compile("^\\*(.+?)--\\s*([0-9]{4}-[0-9]{2}-[0-9]{2})(\\s*-\\s*([0-9]{4}-[0-9]{2}-[0-9]{2}))?\\s*$");//任务日期
 
 
   public static AtomicTask parseTaskLine(String line) {

@@ -24,6 +24,6 @@ public class HalfDayPrecisionDate {
 
     @Override
     public String toString() {
-        return date.toString() + (hasHalfDay ? "/PM" : "/AM");
+        return date.toString() + (hasHalfDay ? "/下午" : "/上午");
     }
 }

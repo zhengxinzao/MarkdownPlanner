@@ -1,4 +1,4 @@
-package org.xumingmingv.markdownplanner.web;
+package org.xumingmingv.markdownplanner.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,13 @@ import org.xumingmingv.markdownplanner.model.IProject;
 import org.xumingmingv.markdownplanner.model.SummaryProject;
 import org.xumingmingv.markdownplanner.service.ConfigService;
 import org.xumingmingv.markdownplanner.service.PlanService;
+import org.xumingmingv.markdownplanner.web.BreadcrumVO;
+import org.xumingmingv.markdownplanner.web.Converters;
+import org.xumingmingv.markdownplanner.web.FileVO;
 
+/**
+ *
+ */
 @Controller
 public class ProjectController {
     @Autowired
@@ -41,11 +47,25 @@ public class ProjectController {
     @Autowired
     private ConfigService configService;
 
+    /**
+     * 入口
+     * @param req
+     * @param model
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/")
     public String index(HttpServletRequest req, Model model) throws Exception {
         return "redirect:/tree";
     }
 
+    /**
+     * 入口
+     * @param req
+     * @param model
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/tree/**")
     public String directory(HttpServletRequest req, Model model) throws Exception {
         String filePath = Utils.getCurrentDirectoryPath(req);
@@ -56,7 +76,7 @@ public class ProjectController {
             )
             .map(
                 f -> new FileVO(
-                    Utils.getFileDisplayName(f),
+                    Utils.getFileDisplayName(f), //转换文件名
                     f.getAbsolutePath().substring(Application.ROOT.length()),
                     f.isDirectory()
                 )
@@ -78,21 +98,31 @@ public class ProjectController {
         ).filter(x -> x.getAbsolutePath().endsWith(".plan.md"))
             .count();
 
-        if (planCount > 1) {
-             FileVO rootFileVo = new FileVO(
-                 SummaryProject.NAME,
-                 new File(filePath).getAbsolutePath().substring(Application.ROOT.length()) + "/" + SummaryProject.FILE_NAME,
-                 false
-             );
-             fileVOs = new ArrayList<>(fileVOs);
-             fileVOs.add(rootFileVo);
-        }
+        //if (planCount > 1) { //总计划
+        //     FileVO rootFileVo = new FileVO(
+        //         SummaryProject.NAME,
+        //         new File(filePath).getAbsolutePath().substring(Application.ROOT.length()) + "/" + SummaryProject.FILE_NAME,
+        //         false
+        //     );
+        //     fileVOs = new ArrayList<>(fileVOs);
+        //     fileVOs.add(rootFileVo);
+        //}
 
         model.addAttribute("files", fileVOs);
         model.addAttribute("breadcrumb", new BreadcrumVO(Application.ROOT, filePath));
         return "directory";
     }
 
+    /**
+     * 编辑保存
+     * @param req
+     * @param name
+     * @param oldProgress
+     * @param newProgress
+     * @param lineNumber
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/**/*.plan.md.json", params = "action=updateTaskProgress", method = RequestMethod.POST)
     public @ResponseBody
     Map updateTaskProgress(HttpServletRequest req, String name,
@@ -102,6 +132,17 @@ public class ProjectController {
         return new HashMap();
     }
 
+    /**
+     * 项目文件访问
+     * @param req
+     * @param status
+     * @param man
+     * @param keyword
+     * @param reverse
+     * @param model
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/**/*.plan.md")
     public String project(HttpServletRequest req,
         @RequestParam(required = false) String status,

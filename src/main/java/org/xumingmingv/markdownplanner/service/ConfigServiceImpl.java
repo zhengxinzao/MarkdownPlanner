@@ -22,7 +22,7 @@ public class ConfigServiceImpl implements ConfigService {
     public boolean isEditEnabled() {
         JSONObject config = getConfig();
         if (config == null || !config.containsKey("editable")) {
-            return false;
+            return true;//默认可编辑
         }
 
         return config.getBoolean("editable");
@@ -32,7 +32,8 @@ public class ConfigServiceImpl implements ConfigService {
     public boolean isCacheEnabled() {
         JSONObject config = getConfig();
         if (config == null || !config.containsKey("editable")) {
-            return true;
+            //return true;//默认使用缓存
+            return false;//todo默认使用缓存
         }
 
         return config.getBoolean("useCache");

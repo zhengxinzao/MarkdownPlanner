@@ -9,7 +9,8 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer {
-  public static final String ROOT = new File("").getAbsolutePath();
+  //public static final String ROOT = new File("").getAbsolutePath();
+  public static final String ROOT = "E:\\zhengxinzao\\md\\project_scheduling";
   public static String IMAGE_DIR = ROOT + "/images";
 
   @Override
